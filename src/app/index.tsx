@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import axios from "axios";
+import ReactPlayer from "react-player";
 
 type Video = {
   name: string;
@@ -11,6 +12,7 @@ const Homepage: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<string | null>(null); // Current video being played
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -27,6 +29,18 @@ const Homepage: React.FC = () => {
 
     fetchVideos();
   }, []);
+  console.log("ReactPlayer URL:", currentVideo);
+
+
+  const handlePlay = (videoName: string): void => {
+    console.log(`Playing video: ${videoName}`);
+    setCurrentVideo(`http://localhost:8080/api/stream?name=${encodeURIComponent(videoName)}`);
+  };
+
+  const handleJoinWatchParty = (videoName: string): void => {
+    console.log(`Joining watch party for video: ${videoName}`);
+    // Add functionality to join a watch party here
+  };
 
   return (
     <div className="grid grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen p-8 gap-8 bg-gray-100">
@@ -42,30 +56,51 @@ const Homepage: React.FC = () => {
         ) : error ? (
           <div className="text-center text-red-600">{error}</div>
         ) : (
-          <ul className="grid gap-4">
-            {videos.map((video, index) => (
-              <li
-                key={index}
-                className="flex justify-between items-center bg-white p-4 rounded shadow"
-              >
-                <span className="text-lg font-medium text-gray-800">{video.name}</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePlay(video.path)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Play
-                  </button>
-                  <button
-                    onClick={() => handleJoinWatchParty(video.name)}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Join Watch Party
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            {/* Video Player */}
+            {currentVideo && (
+              <div className="mb-8">
+                <ReactPlayer
+                url={currentVideo}
+                controls
+                playing
+                width="100%"
+                height="100%"
+                className="rounded shadow"
+                onError={(e) => console.error("ReactPlayer Error:", e)}
+                onReady={() => console.log("ReactPlayer Ready")}
+                onPlay={() => console.log("Video Playing")}
+                onPause={() => console.log("Video Paused")}
+                />
+              </div>
+            )}
+
+            {/* Video List */}
+            <ul className="grid gap-4">
+              {videos.map((video, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between items-center bg-white p-4 rounded shadow"
+                >
+                  <span className="text-lg font-medium text-gray-800">{video.name}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handlePlay(video.name)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Play
+                    </button>
+                    <button
+                      onClick={() => handleJoinWatchParty(video.name)}
+                      className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                    >
+                      Join Watch Party
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </main>
 
@@ -75,16 +110,6 @@ const Homepage: React.FC = () => {
       </footer>
     </div>
   );
-};
-
-const handlePlay = (videoPath: string): void => {
-  console.log(`Playing video from path: ${videoPath}`);
-  // Add functionality to start video playback here
-};
-
-const handleJoinWatchParty = (videoName: string): void => {
-  console.log(`Joining watch party for video: ${videoName}`);
-  // Add functionality to join a watch party here
 };
 
 export default Homepage;
